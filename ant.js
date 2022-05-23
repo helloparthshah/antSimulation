@@ -52,6 +52,8 @@ class Ant {
     this.hasFood = null;
 
     this.mode = "wander";
+
+    this.flag = false;
   }
 
   draw() {
@@ -179,6 +181,20 @@ class Ant {
     if (trail.type == "trail") this.target = trail;
   }
 
+  raycast(a, b, c, d) {
+    let denominator = (b.x - a.x) * (d.y - c.y) - (b.y - a.y) * (d.x - c.x);
+    let numerator1 = (a.y - c.y) * (d.x - c.x) - (a.x - c.x) * (d.y - c.y);
+    let numerator2 = (a.y - c.y) * (b.x - a.x) - (a.x - c.x) * (b.y - a.y);
+
+    // Detect coincident lines (has a problem, read below)
+    if (denominator == 0) return numerator1 == 0 && numerator2 == 0;
+
+    let r = numerator1 / denominator;
+    let s = numerator2 / denominator;
+
+    return r >= 0 && r <= 1 && s >= 0 && s <= 1;
+  }
+
   update() {
     if (this.target && this.mode == "follow") {
       let d = dist(
@@ -224,28 +240,37 @@ class Ant {
       );
     }
 
+    // raycast to find intersection with screen edge
+    let a = this.pos;
+    let b = createVector(
+      a.x + this.dir.x * this.viewDistance,
+      a.y + this.dir.y * this.viewDistance
+    );
+    let w1 = createVector(0, 0);
+    let w2 = createVector(width, 0);
+    let w3 = createVector(width, height);
+    let w4 = createVector(0, height);
     // steer away if too close to edge of screen
     if (
-      this.pos.x < this.viewDistance ||
-      this.pos.x > width - this.viewDistance ||
-      this.pos.y < this.viewDistance ||
-      this.pos.y > height - this.viewDistance
+      this.raycast(a, b, w1, w2) ||
+      this.raycast(a, b, w3, w4) ||
+      this.raycast(a, b, w2, w3) ||
+      this.raycast(a, b, w4, w1)
     ) {
-      // raycast to find intersection with screen edge
-      line(
-        this.pos.x,
-        this.pos.y,
-        this.pos.x + this.dir.x * this.viewDistance,
-        this.pos.y + this.dir.y * this.viewDistance
-      );
-      // draw the ray
-      /* let angle = atan2(
-        this.pos.y - this.target.pos.y,
-        this.pos.x - this.target.pos.x
-      );
-      if (angle > -this.fov / 2 && angle < this.fov / 2) {
-        this.desiredDirection.rotate(PI);
-      } */
+      // change direction to 90 degrees to the left if too close to left edge
+      // this.desiredDirection.rotate(radians(90));
+      let v = p5.Vector.mult(this.dir, this.viewDistance);
+      v.rotate(random(-PI, PI));
+      this.desiredDirection = p5.Vector.sub(v, this.pos);
+    }
+
+    if (
+      this.pos.x >= width - this.viewDistance / 2 ||
+      this.pos.x <= this.viewDistance / 2 ||
+      this.pos.y >= height - this.viewDistance / 2 ||
+      this.pos.y <= this.viewDistance / 2
+    ) {
+      this.desiredDirection = p5.Vector.sub(home.pos, this.pos);
     }
 
     /* this.desiredDirection = p5.Vector.sub(
@@ -266,10 +291,10 @@ class Ant {
     this.dir.set(this.velocity);
     this.dir.normalize();
 
-    if (this.pos.x >= width - 10) this.pos.x = width - 10;
+    /* if (this.pos.x >= width - 10) this.pos.x = width - 10;
     if (this.pos.y >= height - 10) this.pos.y = height - 10;
     if (this.pos.x <= 10) this.pos.x = 10;
-    if (this.pos.y <= 10) this.pos.y = 10;
+    if (this.pos.y <= 10) this.pos.y = 10; */
   }
 }
 
