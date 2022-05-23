@@ -8,10 +8,26 @@ let trails = [];
 
 let home;
 
+let isFOV;
+
+let isFoodTrail;
+
+let isReturnTrail;
 function setup() {
   // put setup code here
   pixelDensity(1);
-  createCanvas(windowWidth, windowHeight);
+  let canvas = createCanvas(windowWidth, windowHeight);
+  canvas.mousePressed(mouse);
+  canvas.mouseMoved(mouse);
+  let controls = document.getElementById("controls");
+  isFOV = createCheckbox("FOV Visuals", true);
+  isFOV.parent(controls);
+  
+  isFoodTrail = createCheckbox("Food Trail Visuals", true);
+  isFoodTrail.parent(controls);
+
+  isReturnTrail = createCheckbox("Return Trail Visuals", true);
+  isReturnTrail.parent(controls);
   rectMode(CENTER);
   home = new Home(random(width), random(height));
   for (let i = 0; i < 100; i++) {
@@ -29,12 +45,11 @@ function setup() {
   } */
 }
 
-function mousePressed() {
-  food.push(new Food(mouseX, mouseY));
-}
-
-function mouseDragged() {
-  food.push(new Food(mouseX, mouseY));
+function mouse() {
+  // check if mouse is in pressed state
+  if (mouseIsPressed) {
+    food.push(new Food(mouseX, mouseY));
+  }
 }
 
 function draw() {

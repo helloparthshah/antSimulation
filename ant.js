@@ -11,11 +11,15 @@ class Trail {
   draw() {
     noStroke();
     if (this.type === "food") {
-      fill(255, 0, 0, this.lifespan);
-      ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
+      if (isFoodTrail.checked()) {
+        fill(255, 0, 0, this.lifespan);
+        ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
+      }
     } else {
-      fill(0, 0, 255, this.lifespan);
-      ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
+      if (isReturnTrail.checked()) {
+        fill(0, 0, 255, this.lifespan);
+        ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
+      }
     }
     this.lifespan--;
     if (this.lifespan < 0) {
@@ -70,16 +74,17 @@ class Ant {
     // draw fov arc
     noStroke();
     // make it start from tip of ant
-
-    fill(255, 0, 0, 30);
-    arc(
-      20 / 1.5,
-      10 / 1.5,
-      this.viewDistance * 2,
-      this.viewDistance * 2,
-      -this.fov / 2,
-      this.fov / 2
-    );
+    if (isFOV.checked()) {
+      fill(255, 0, 0, 30);
+      arc(
+        20 / 1.5,
+        10 / 1.5,
+        this.viewDistance * 2,
+        this.viewDistance * 2,
+        -this.fov / 2,
+        this.fov / 2
+      );
+    }
     pop();
   }
 
@@ -94,7 +99,8 @@ class Ant {
         this.mode = "return";
         this.hasFood = food[i];
         food.splice(i, 1);
-        this.target = home;
+        // this.target = home;
+        this.target = null;
         return;
       }
     }
@@ -130,26 +136,31 @@ class Ant {
   checkForTrail() {
     if (!this.target)
       for (let i = trails.length - 1; i >= 0; i--) {
-        // if (trails[i].type === "food") {
-        let d = dist(this.pos.x, this.pos.y, trails[i].pos.x, trails[i].pos.y);
-        /* if (d <= 5) {
+        if (trails[i].type === "food") {
+          let d = dist(
+            this.pos.x,
+            this.pos.y,
+            trails[i].pos.x,
+            trails[i].pos.y
+          );
+          /* if (d <= 5) {
           this.target = null;
         } */
-        if (d <= this.viewDistance) {
-          this.mode = "follow";
-          this.target = trails[i].food;
-          return;
-          /* let angle = atan2(
+          if (d <= this.viewDistance) {
+            this.mode = "follow";
+            this.target = trails[i].food;
+            return;
+            /* let angle = atan2(
               trails[i].pos.y - this.pos.y,
               trails[i].pos.x - this.pos.x
             );
             if (angle > -this.fov / 2 && angle < this.fov / 2) { */
-          /* if (trails[i].lifespan <= weakest) {
+            /* if (trails[i].lifespan <= weakest) {
             weakest = trails[i].lifespan;
             trail = trails[i];
           } */
-          // }
-          // }
+            // }
+          }
         }
       }
     // if (trail) this.target = trail;
@@ -157,7 +168,7 @@ class Ant {
 
   wanderBack() {
     let trailStillThere = false;
-    let trail = new Trail(this.pos.x, this.pos.y, this.index, "food");
+    let trail = new Trail(this.pos.x, this.pos.y, this.index, "food", home);
 
     for (let i = trails.length - 1; i >= 0; i--) {
       if (this.target == trails[i]) {
@@ -170,14 +181,13 @@ class Ant {
         }
 
         if (d < 5) {
-          // trails.splice(i, 1);
           this.target = null;
           trails[i].delete();
           return;
         }
       }
     }
-    if (!trailStillThere) this.target = null;
+    if (!trailStillThere) this.target = home;
     if (trail.type == "trail") this.target = trail;
   }
 
@@ -214,7 +224,7 @@ class Ant {
         trails.push(
           new Trail(this.pos.x, this.pos.y, this.index, "food", this.hasFood)
         );
-      // this.wanderBack();
+      this.wanderBack();
       //   check if reached home
       let d = dist(this.pos.x, this.pos.y, home.pos.x, home.pos.y);
       if (d <= home.radius) {
@@ -224,8 +234,10 @@ class Ant {
         this.checkForTrail();
       }
     } else {
-      // if (frameCount % 15 == 0)
-      // trails.push(new Trail(this.pos.x, this.pos.y, this.index, "trail"));
+      if (frameCount % 15 == 0)
+        trails.push(
+          new Trail(this.pos.x, this.pos.y, this.index, "trail", home)
+        );
       this.checkForFood();
       this.checkForTrail();
       this.pickFood();
