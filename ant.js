@@ -99,8 +99,9 @@ class Ant {
         this.mode = "return";
         this.hasFood = food[i];
         food.splice(i, 1);
-        // this.target = home;
-        this.target = null;
+        if (knowHome.checked()) {
+          this.target = home;
+        } else this.target = null;
         return;
       }
     }
@@ -143,23 +144,19 @@ class Ant {
             trails[i].pos.x,
             trails[i].pos.y
           );
-          /* if (d <= 5) {
-          this.target = null;
-        } */
           if (d <= this.viewDistance) {
+            if (
+              dist(
+                this.pos.x,
+                this.pos.y,
+                trails[i].food.pos.x,
+                trails[i].food.pos.y
+              ) <= this.viewDistance
+            )
+              continue;
             this.mode = "follow";
             this.target = trails[i].food;
             return;
-            /* let angle = atan2(
-              trails[i].pos.y - this.pos.y,
-              trails[i].pos.x - this.pos.x
-            );
-            if (angle > -this.fov / 2 && angle < this.fov / 2) { */
-            /* if (trails[i].lifespan <= weakest) {
-            weakest = trails[i].lifespan;
-            trail = trails[i];
-          } */
-            // }
           }
         }
       }
@@ -213,7 +210,7 @@ class Ant {
         this.target.pos.x,
         this.target.pos.y
       );
-      if (d <= 100) {
+      if (d < this.viewDistance) {
         this.target = null;
         this.mode = "wander";
       }
@@ -224,7 +221,11 @@ class Ant {
         trails.push(
           new Trail(this.pos.x, this.pos.y, this.index, "food", this.hasFood)
         );
-      this.wanderBack();
+      if (knowHome.checked()) {
+        this.target = home;
+      } else {
+        this.wanderBack();
+      }
       //   check if reached home
       let d = dist(this.pos.x, this.pos.y, home.pos.x, home.pos.y);
       if (d <= home.radius) {

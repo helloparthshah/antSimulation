@@ -12,6 +12,7 @@ let isFOV;
 
 let isFoodTrail;
 
+let knowHome;
 let isReturnTrail;
 function setup() {
   // put setup code here
@@ -22,12 +23,15 @@ function setup() {
   let controls = document.getElementById("controls");
   isFOV = createCheckbox("FOV Visuals", true);
   isFOV.parent(controls);
-  
+
   isFoodTrail = createCheckbox("Food Trail Visuals", true);
   isFoodTrail.parent(controls);
 
   isReturnTrail = createCheckbox("Return Trail Visuals", true);
   isReturnTrail.parent(controls);
+
+  knowHome = createCheckbox("Ants know Home", true);
+  knowHome.parent(controls);
   rectMode(CENTER);
   home = new Home(random(width), random(height));
   for (let i = 0; i < 100; i++) {
