@@ -2,8 +2,8 @@
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 20vw;
-    height: 20vh;
+    width: 30vw;
+    height: 30vh;
     background: rgba(0, 0, 0, 0.5);
     z-index: 100;
     display: flex;

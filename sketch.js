@@ -28,7 +28,7 @@ function setup() {
   // put setup code here
   pixelDensity(1);
   let canvas = createCanvas(windowWidth, windowHeight);
-  canvas.mousePressed(mouse);
+  canvas.touchMoved(mouse);
   canvas.mouseMoved(mouse);
   let controls = document.getElementById("controls");
   isFOV = createCheckbox("FOV Visuals", false);
