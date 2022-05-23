@@ -11,9 +11,8 @@ let home;
 function setup() {
   // put setup code here
   pixelDensity(1);
-  createCanvas(displayWidth, displayHeight);
+  createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
-  let foodLocation = createVector(random(width), random(height));
   home = new Home(random(width), random(height));
   for (let i = 0; i < 100; i++) {
     ants[i] = new Ant(

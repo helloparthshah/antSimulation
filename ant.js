@@ -4,7 +4,7 @@ class Trail {
     this.type = type;
     this.owner = owner;
     this.lifespan = 400;
-
+    this.radius = 5;
     this.food = new Food(food.pos.x, food.pos.y);
   }
 
@@ -12,10 +12,10 @@ class Trail {
     noStroke();
     if (this.type === "food") {
       fill(255, 0, 0, this.lifespan);
-      ellipse(this.pos.x, this.pos.y, 5, 5);
+      ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
     } else {
       fill(0, 0, 255, this.lifespan);
-      ellipse(this.pos.x, this.pos.y, 5, 5);
+      ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
     }
     this.lifespan--;
     if (this.lifespan < 0) {
@@ -69,7 +69,7 @@ class Ant {
     noStroke();
     // make it start from tip of ant
 
-    fill(255, 0, 0, 50);
+    fill(255, 0, 0, 30);
     arc(
       20 / 1.5,
       10 / 1.5,
@@ -88,7 +88,7 @@ class Ant {
         foodStillThere = true;
       }
       let d = dist(this.pos.x, this.pos.y, food[i].pos.x, food[i].pos.y);
-      if (d <= 10) {
+      if (d <= food[i].size) {
         this.mode = "return";
         this.hasFood = food[i];
         food.splice(i, 1);
@@ -201,7 +201,7 @@ class Ant {
       // this.wanderBack();
       //   check if reached home
       let d = dist(this.pos.x, this.pos.y, home.pos.x, home.pos.y);
-      if (d <= 20) {
+      if (d <= home.radius) {
         home.food++;
         this.hasFood = null;
         this.target = null;
@@ -224,6 +224,30 @@ class Ant {
       );
     }
 
+    // steer away if too close to edge of screen
+    if (
+      this.pos.x < this.viewDistance ||
+      this.pos.x > width - this.viewDistance ||
+      this.pos.y < this.viewDistance ||
+      this.pos.y > height - this.viewDistance
+    ) {
+      // raycast to find intersection with screen edge
+      line(
+        this.pos.x,
+        this.pos.y,
+        this.pos.x + this.dir.x * this.viewDistance,
+        this.pos.y + this.dir.y * this.viewDistance
+      );
+      // draw the ray
+      /* let angle = atan2(
+        this.pos.y - this.target.pos.y,
+        this.pos.x - this.target.pos.x
+      );
+      if (angle > -this.fov / 2 && angle < this.fov / 2) {
+        this.desiredDirection.rotate(PI);
+      } */
+    }
+
     /* this.desiredDirection = p5.Vector.sub(
       createVector(mouseX, mouseY),
       this.pos
@@ -242,17 +266,17 @@ class Ant {
     this.dir.set(this.velocity);
     this.dir.normalize();
 
-    if (this.pos.x >= width - 20) this.pos.x = width - 20;
-    if (this.pos.y >= height - 20) this.pos.y = height - 20;
-    if (this.pos.x <= 20) this.pos.x = 20;
-    if (this.pos.y <= 20) this.pos.y = 20;
+    if (this.pos.x >= width - 10) this.pos.x = width - 10;
+    if (this.pos.y >= height - 10) this.pos.y = height - 10;
+    if (this.pos.x <= 10) this.pos.x = 10;
+    if (this.pos.y <= 10) this.pos.y = 10;
   }
 }
 
 class Home {
   constructor(x, y) {
     this.pos = createVector(x, y);
-    this.radius = 20;
+    this.radius = 40;
     this.food = 0;
   }
 
@@ -262,8 +286,9 @@ class Home {
     fill(0, 255, 0);
     ellipse(0, 0, this.radius * 2, this.radius * 2);
     fill(0, 0, 0);
+    textAlign(CENTER);
     textSize(20);
-    text(this.food, 0, 0);
+    text(this.food, 0, this.radius / 2 - (20 * 2) / 3);
     pop();
   }
 }
