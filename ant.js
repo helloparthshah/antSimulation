@@ -58,18 +58,31 @@ class Ant {
     this.mode = "wander";
 
     this.flag = false;
+
+    this.image = antGIF;
   }
 
   draw() {
     push();
-    translate(this.pos.x, this.pos.y);
-    rotate(this.dir.heading());
-    fill(0);
-    triangle(0, 0, 20 / 1.5, 10 / 1.5, 0, 20 / 1.5);
+    rectMode(CENTER);
+    if (!textures.checked()) {
+      translate(this.pos.x, this.pos.y);
+      rotate(this.dir.heading());
+      fill(0);
+      triangle(5, 0, -10, -10, -10, 10);
+    } else {
+      translate(this.pos.x, this.pos.y);
+      rotate(this.dir.heading());
+      push();
+      rotate(PI / 2);
+      imageMode(CENTER);
+      image(antGIF, 0, 0, 20, 20);
+      pop();
+    }
     if (this.hasFood) {
       stroke(0);
       fill(0, 255, 0);
-      ellipse(20 / 1.5, 10 / 1.5, 10, 10);
+      ellipse(10, 0, 10, 10);
     }
     // draw fov arc
     noStroke();
@@ -77,8 +90,8 @@ class Ant {
     if (isFOV.checked()) {
       fill(255, 0, 0, 30);
       arc(
-        20 / 1.5,
-        10 / 1.5,
+        0,
+        0,
         this.viewDistance * 2,
         this.viewDistance * 2,
         -this.fov / 2,
