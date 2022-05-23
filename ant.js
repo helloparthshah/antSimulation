@@ -1,9 +1,11 @@
 class Trail {
-  constructor(x, y, owner, type) {
+  constructor(x, y, owner, type, food) {
     this.pos = createVector(x, y);
     this.type = type;
     this.owner = owner;
-    this.lifespan = 600;
+    this.lifespan = 400;
+
+    this.food = new Food(food.pos.x, food.pos.y);
   }
 
   draw() {
@@ -13,16 +15,16 @@ class Trail {
       ellipse(this.pos.x, this.pos.y, 5, 5);
     } else {
       fill(0, 0, 255, this.lifespan);
-      // ellipse(this.pos.x, this.pos.y, 5, 5);
+      ellipse(this.pos.x, this.pos.y, 5, 5);
     }
     this.lifespan--;
-    if (this.lifespan < 0 && this.type === "food") {
+    if (this.lifespan < 0) {
       trails.splice(trails.indexOf(this), 1);
     }
+  }
 
-    if (this.lifespan < -500) {
-      trails.splice(trails.indexOf(this), 1);
-    }
+  delete() {
+    trails.splice(trails.indexOf(this), 1);
   }
 }
 
@@ -39,7 +41,7 @@ class Ant {
     this.velocity = createVector(0, 0);
 
     this.fov = PI / 3;
-    this.viewDistance = 300;
+    this.viewDistance = 100;
 
     this.wanderStrength = 0.2;
 
@@ -47,7 +49,9 @@ class Ant {
 
     this.target = null;
 
-    this.hasFood = false;
+    this.hasFood = null;
+
+    this.mode = "wander";
   }
 
   draw() {
@@ -56,6 +60,24 @@ class Ant {
     rotate(this.dir.heading());
     fill(0);
     triangle(0, 0, 20 / 1.5, 10 / 1.5, 0, 20 / 1.5);
+    if (this.hasFood) {
+      stroke(0);
+      fill(0, 255, 0);
+      ellipse(20 / 1.5, 10 / 1.5, 10, 10);
+    }
+    // draw fov arc
+    noStroke();
+    // make it start from tip of ant
+
+    fill(255, 0, 0, 50);
+    arc(
+      20 / 1.5,
+      10 / 1.5,
+      this.viewDistance * 2,
+      this.viewDistance * 2,
+      -this.fov / 2,
+      this.fov / 2
+    );
     pop();
   }
 
@@ -66,16 +88,20 @@ class Ant {
         foodStillThere = true;
       }
       let d = dist(this.pos.x, this.pos.y, food[i].pos.x, food[i].pos.y);
-      if (d < 10) {
+      if (d <= 10) {
+        this.mode = "return";
+        this.hasFood = food[i];
         food.splice(i, 1);
-        this.hasFood = true;
-        this.target = null;
+        this.target = home;
+        return;
       }
     }
-    if (!foodStillThere) this.target = null;
+    if (!foodStillThere && this.mode == "food") this.target = null;
   }
 
   checkForFood() {
+    let nearest = null;
+    let nearestDist = Infinity;
     //   checks if food in fov cone
     for (let i = 0; i < food.length; i++) {
       // check if food is in fov cone
@@ -85,38 +111,46 @@ class Ant {
           food[i].pos.y - this.pos.y,
           food[i].pos.x - this.pos.x
         );
-        if (angle > -this.fov / 2 && angle < this.fov / 2) {
-          this.target = food[i];
-          return;
+        if (angle > -this.fov && angle < this.fov) {
+          if (d < nearestDist) {
+            nearestDist = d;
+            nearest = food[i];
+          }
         }
       }
+    }
+    if (nearest) {
+      this.mode = "food";
+      this.target = nearest;
     }
   }
 
   checkForTrail() {
-    let trail = null;
-    for (let i = 0; i < trails.length; i++) {
-      if (trails[i].type === "food") {
+    if (!this.target)
+      for (let i = trails.length - 1; i >= 0; i--) {
+        // if (trails[i].type === "food") {
         let d = dist(this.pos.x, this.pos.y, trails[i].pos.x, trails[i].pos.y);
-        if (d < 5) {
+        /* if (d <= 5) {
           this.target = null;
-        }
-        if (!this.target)
-          if (d < this.viewDistance) {
-            /* let angle = atan2(
+        } */
+        if (d <= this.viewDistance) {
+          this.mode = "follow";
+          this.target = trails[i].food;
+          return;
+          /* let angle = atan2(
               trails[i].pos.y - this.pos.y,
               trails[i].pos.x - this.pos.x
             );
             if (angle > -this.fov / 2 && angle < this.fov / 2) { */
-            if (!trail) trail = trails[i];
-            if (trails[i].lifespan <= trail.lifespan) {
-              trail = trails[i];
-            }
-            // }
-          }
+          /* if (trails[i].lifespan <= weakest) {
+            weakest = trails[i].lifespan;
+            trail = trails[i];
+          } */
+          // }
+          // }
+        }
       }
-    }
-    if (trail) this.target = trail;
+    // if (trail) this.target = trail;
   }
 
   wanderBack() {
@@ -127,15 +161,16 @@ class Ant {
       if (this.target == trails[i]) {
         trailStillThere = true;
       }
-      if (trails[i].type === "trail" /*  && trails[i].owner === this.index */) {
+      if (trails[i].type === "trail" && trails[i].owner === this.index) {
         let d = dist(this.pos.x, this.pos.y, trails[i].pos.x, trails[i].pos.y);
         if (d < this.viewDistance) {
           if (trails[i].lifespan <= trail.lifespan) trail = trails[i];
         }
 
         if (d < 5) {
-          trails.splice(i, 1);
+          // trails.splice(i, 1);
           this.target = null;
+          trails[i].delete();
           return;
         }
       }
@@ -145,21 +180,36 @@ class Ant {
   }
 
   update() {
+    if (this.target && this.mode == "follow") {
+      let d = dist(
+        this.pos.x,
+        this.pos.y,
+        this.target.pos.x,
+        this.target.pos.y
+      );
+      if (d <= 100) {
+        this.target = null;
+        this.mode = "wander";
+      }
+    }
     if (this.hasFood) {
       // add food to trails every 60 frames
       if (frameCount % 15 == 0)
-        trails.push(new Trail(this.pos.x, this.pos.y, this.index, "food"));
-      this.wanderBack();
+        trails.push(
+          new Trail(this.pos.x, this.pos.y, this.index, "food", this.hasFood)
+        );
+      // this.wanderBack();
       //   check if reached home
       let d = dist(this.pos.x, this.pos.y, home.pos.x, home.pos.y);
-      if (d < 20) {
-        this.hasFood = false;
+      if (d <= 20) {
+        home.food++;
+        this.hasFood = null;
         this.target = null;
         this.checkForTrail();
       }
     } else {
-      if (frameCount % 15 == 0)
-        trails.push(new Trail(this.pos.x, this.pos.y, this.index, "trail"));
+      // if (frameCount % 15 == 0)
+      // trails.push(new Trail(this.pos.x, this.pos.y, this.index, "trail"));
       this.checkForFood();
       this.checkForTrail();
       this.pickFood();
@@ -188,13 +238,14 @@ class Ant {
 
     this.pos.add(this.velocity);
 
-    if (this.pos.x >= width) this.pos.x = 0;
-    if (this.pos.y >= height) this.pos.y = 0;
-    if (this.pos.x < 0) this.pos.x = width;
-    if (this.pos.y < 0) this.pos.y = height;
     // set direction
     this.dir.set(this.velocity);
     this.dir.normalize();
+
+    if (this.pos.x >= width - 20) this.pos.x = width - 20;
+    if (this.pos.y >= height - 20) this.pos.y = height - 20;
+    if (this.pos.x <= 20) this.pos.x = 20;
+    if (this.pos.y <= 20) this.pos.y = 20;
   }
 }
 
@@ -202,6 +253,7 @@ class Home {
   constructor(x, y) {
     this.pos = createVector(x, y);
     this.radius = 20;
+    this.food = 0;
   }
 
   draw() {
@@ -209,6 +261,9 @@ class Home {
     translate(this.pos.x, this.pos.y);
     fill(0, 255, 0);
     ellipse(0, 0, this.radius * 2, this.radius * 2);
+    fill(0, 0, 0);
+    textSize(20);
+    text(this.food, 0, 0);
     pop();
   }
 }

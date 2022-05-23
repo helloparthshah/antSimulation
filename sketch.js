@@ -22,12 +22,20 @@ function setup() {
       i
     );
   }
-  for (let i = 0; i < 1000; i++) {
+  /* for (let i = 0; i < 1000; i++) {
     food[i] = new Food(
       random(foodLocation.x - 200, foodLocation.x + 200),
       random(foodLocation.y - 200, foodLocation.y + 200)
     );
-  }
+  } */
+}
+
+function mousePressed() {
+  food.push(new Food(mouseX, mouseY));
+}
+
+function mouseDragged() {
+  food.push(new Food(mouseX, mouseY));
 }
 
 function draw() {
