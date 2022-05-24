@@ -45,8 +45,12 @@ class Ant {
     this.velocity = createVector(0, 0);
 
     this.fov = PI / 3;
-    this.viewDistance = 100;
-
+    // check if on mobile
+    if (width < 500) {
+      this.viewDistance = 50;
+    } else {
+      this.viewDistance = 100;
+    }
     this.wanderStrength = 0.2;
 
     this.desiredDirection = p5.Vector.random2D();
