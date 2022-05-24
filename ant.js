@@ -40,7 +40,7 @@ class Ant {
     // randomize seed
     // this.dir = p5.Vector.random2D();
     this.dir = createVector(random(-1, 1), random(-1, 1));
-    this.maxSpeed = 2;
+    this.maxSpeed = 1.5;
     this.steerStrength = 0.1;
     this.velocity = createVector(0, 0);
 
@@ -129,10 +129,8 @@ class Ant {
       // check if food is in fov cone
       let d = dist(this.pos.x, this.pos.y, food[i].pos.x, food[i].pos.y);
       if (d < this.viewDistance) {
-        let angle = atan2(
-          food[i].pos.y - this.pos.y,
-          food[i].pos.x - this.pos.x
-        );
+        // find angle with respect to this.dir
+        let angle = this.dir.angleBetween(p5.Vector.sub(food[i].pos, this.pos));
         if (angle > -this.fov && angle < this.fov) {
           if (d < nearestDist) {
             nearestDist = d;

@@ -26,7 +26,7 @@ function preload() {
 
 function setup() {
   // put setup code here
-  pixelDensity(1);
+  // pixelDensity(1);
   let canvas = createCanvas(windowWidth, windowHeight);
   canvas.touchMoved(mouse);
   canvas.mouseMoved(mouse);
@@ -67,20 +67,20 @@ function mouse() {
 
 function draw() {
   // put drawing code here
-  background(220);
+
+  background(241, 213, 174);
   home.draw();
 
-  for (let i = 0; i < ants.length; i++) {
-    ants[i].update();
-    ants[i].draw();
+  for (let i = 0; i < trails.length; i++) {
+    trails[i].draw();
   }
   for (let i = 0; i < food.length; i++) {
     food[i].draw();
   }
-  for (let i = 0; i < trails.length; i++) {
-    trails[i].draw();
+  for (let i = 0; i < ants.length; i++) {
+    ants[i].update();
+    ants[i].draw();
   }
-
   // framerate in the bottom left corner
   fill(0);
   textSize(20);
